@@ -32,4 +32,4 @@ bedGraph <- data.frame(chrom      = data$chrom,
                        chromEnd   = data$pos+1,
                        dataValue  = entropy)
 
-write.table(bedGraph, "bedGraph.tsv", sep = "\t")
+write.table(bedGraph, "Mission3.bedGraph", col.names = F, row.names = F, quote = F)
