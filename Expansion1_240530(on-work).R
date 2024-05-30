@@ -39,3 +39,6 @@ system(paste(mapping_cmd, "|", convert_cmd, "|", sorting_cmd, "-o", out))
 
 ## mapping rate
 system(paste("samtools", "flagstat", "./02.bam/DDX52_clip.bam", ">", "./02.bam/flagstat.txt"))
+
+## pileup (all region)
+system(paste("samtools", "mpileup", "./02.bam/DDX52_clip.bam", ">", "./02.bam/DDX52_clip.pileup"))
