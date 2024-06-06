@@ -57,4 +57,7 @@ system(paste("samtools", "index", "./02.bam/DDX52_clip.bam", "./02.bam/DDX52_cli
 #### filter location of DDX52 
 system(paste("samtools", "view", "-b", "-o", "./02.bam/clip_DDX52.bam", "./02.bam/DDX52_clip.bam", "17:37609000-37644000"))
 
+#### pileup
+system(paste("samtools", "mpileup", "./02.bam/clip_DDX52.bam", ">", "./02.bam/clip_DDX52.pileup"))
 
+system(paste("awk", "'$2 >= 37609739 && $2 <= 37643446 { print $0; }'", "./02.bam/clip_DDX52.pileup",">", "./02.bam/clip_DDX52_gene.pileup"))
