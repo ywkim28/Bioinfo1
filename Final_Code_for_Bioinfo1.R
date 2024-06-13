@@ -3,7 +3,9 @@
 ################################################################################
 
 ##### setting R environment
-
+library(DescTools)
+library(data.table)
+library(dplyr)
 
 ##### setting repository
 setwd("/disk2/bikyw/8.bioinfo1/")
@@ -44,12 +46,11 @@ out         <- "./DDX3X_clip.bam"
 
 system(paste(mapping_cmd, "|", convert_cmd, "|", sorting_cmd, "-o", out))
 
-
-#### mapping rate
+#### calculate mapping rate
 system(paste("samtools", "flagstat", "./DDX3X_clip.bam", ">", "./flagstat.txt"))
 
 #### find DDX3X information from gene annotation
-system(paste("gzip", "-d", "./*.gtf.gz"))
+# system(paste("gzip", "-d", "./*.gtf.gz"))
 
 system(paste("grep", "-i", "DDX3X", "./Homo_sapiens.GRCh38.112.gtf"))
 
@@ -69,16 +70,11 @@ system(paste("samtools", "mpileup", "./filtered.bam", ">", "./filtered.pileup"))
 
 system(paste("awk", "'$2 >= 41333348 && $2 <= 41364472 { print $0; }'", "./filtered.pileup",">", "./filtered_gene.pileup"))
 
-#### data cleansing (filter with match and substitution)
-library(data.table)
-library(dplyr)
-
+#### data cleansing (leave only match and substitution)
 data <- fread("./filtered_gene.pileup")
 colnames(data) <- c("chrom", "pos", "_ref", "count", "basereads", "quals")
 data$relative_position <- seq(1:nrow(data))
 data <- data %>% filter(count >= 3)
-
-
 
 data$match <- gsub("[<>$*#^\"]", "",data$basereads)
 data$match <- toupper(data$match)
@@ -86,11 +82,7 @@ data$match <- gsub("]", "", data$match)
 
 data_qc <- data %>% filter(match != "")
 
-
-
-## calculate shannon entropy
-library(DescTools)
-
+#### calculate shannon entropy
 entropy <- c()
 
 for (i in data_qc$match){
@@ -99,17 +91,16 @@ for (i in data_qc$match){
   entropy <- c(entropy, Entropy(table(tmp)/nchar(i)))
 }
 
-
 data_qc$entropy <- entropy
 
+#### temporary check for entropy
 barplot(entropy)
 
-## make bedGraph dataframe
+#### make bedGraph dataframe
 bedGraph <- data.frame(chrom      = data_qc$chrom,
                        chromStart = data_qc$pos-1,
                        chromEnd   = data_qc$pos,
                        dataValue  = entropy)
 
+#### save as output file
 write.table(bedGraph, "DDX3X.bedGraph", col.names = F, row.names = F, quote = F)
-
-
